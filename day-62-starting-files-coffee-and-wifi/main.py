@@ -1,7 +1,7 @@
 from flask import Flask, render_template
 from flask_bootstrap import Bootstrap5
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
+from wtforms import StringField, SubmitField, SelectField
 from wtforms.validators import DataRequired
 import csv
 
@@ -9,24 +9,25 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
 Bootstrap5(app)
 
+coffee_emo = ['✘', '☕️', '☕️☕️', '☕️☕️☕️', '☕️☕️☕️☕️']
+wifi_emo = ['✘', '💪', '💪💪', '💪💪💪', '💪💪💪💪']
+power_emo = ['✘', '🔌', '🔌🔌', '🔌🔌🔌️', '🔌🔌🔌🔌️']
+
 
 class CafeForm(FlaskForm):
     cafe = StringField('Cafe name', validators=[DataRequired()])
     location = StringField('Location', validators=[DataRequired()])
     open = StringField('Open', validators=[DataRequired()])
     close = StringField('Close', validators=[DataRequired()])
-    coffee = StringField('Coffee', validators=[DataRequired()])
-    wifi = StringField('Wifi', validators=[DataRequired()])
-    power = StringField('Power', validators=[DataRequired()])
+    coffee = SelectField('Coffee', choices=coffee_emo)
+    wifi = SelectField('Wifi', choices=wifi_emo)
+    power = SelectField('Power', choices=power_emo)
     submit = SubmitField('Submit')
 
-# Exercise:
-# add: Location URL, open time, closing time, coffee rating, wifi rating, power outlet rating fields
-# make coffee/wifi/power a select element with choice of 0 to 5.
-#e.g. You could use emojis ☕️/💪/✘/🔌
+
 # make all fields required except submit
 # use a validator to check that the URL field has a URL entered.
-# ---------------------------------------------------------------------------
+
 
 
 css_url = "static/css/styles.css"
@@ -37,7 +38,7 @@ def index():
     return render_template("index.html", css_url=css_url)
 
 
-@app.route('/add')
+@app.route('/add', methods=['GET', 'POST'])
 def add_cafe():
     form = CafeForm()
     if form.validate_on_submit():
