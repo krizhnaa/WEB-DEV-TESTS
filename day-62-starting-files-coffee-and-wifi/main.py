@@ -12,6 +12,12 @@ Bootstrap5(app)
 
 class CafeForm(FlaskForm):
     cafe = StringField('Cafe name', validators=[DataRequired()])
+    location = StringField('Location', validators=[DataRequired()])
+    open = StringField('Open', validators=[DataRequired()])
+    close = StringField('Close', validators=[DataRequired()])
+    coffee = StringField('Coffee', validators=[DataRequired()])
+    wifi = StringField('Wifi', validators=[DataRequired()])
+    power = StringField('Power', validators=[DataRequired()])
     submit = SubmitField('Submit')
 
 # Exercise:
@@ -23,12 +29,11 @@ class CafeForm(FlaskForm):
 # ---------------------------------------------------------------------------
 
 
-
+css_url = "static/css/styles.css"
 
 
 @app.route("/")
 def index():
-    css_url = "static/css/styles.css"
     return render_template("index.html", css_url=css_url)
 
 
@@ -40,12 +45,11 @@ def add_cafe():
     # Exercise:
     # Make the form write a new row into cafe-data.csv
     # with   if form.validate_on_submit()
-    return render_template('add.html', form=form)
+    return render_template('add.html', form=form, css_url=css_url)
 
 
 @app.route('/cafes')
 def cafes():
-    css_url = "static/css/styles.css"
     with open('cafe-data.csv', newline='', encoding='utf-8') as csv_file:
         csv_data = csv.reader(csv_file, delimiter=',')
         list_of_rows = []
