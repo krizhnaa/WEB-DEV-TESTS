@@ -1,9 +1,6 @@
 {% extends 'base.html' %}
-
 {% block title %}Restaurants{% endblock %}
-
 {% block content %}
-
 <div class="jumbotron center">
     <div class="container">
         <div class="row">
@@ -27,7 +24,7 @@
                     {% for cafe in cafes[1:] %}
                     <tr>
                         <td>{{ cafe[0] }}</td>
-                        <th><a class="warning" href="{{ cafe[1] }}">Magic Link</a></th>
+                        <th><a class="warning" href="{{ cafe[1] }}">Map Link</a></th>
                         <td>{{ cafe[2] }}</td>
                         <td>{{ cafe[3] }}</td>
                         <td>{{ cafe[4] }}</td>
@@ -42,5 +39,4 @@
         </div>
     </div>
 </div>
-
 {% endblock %}
