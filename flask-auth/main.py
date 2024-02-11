@@ -12,6 +12,7 @@ app.config['SECRET_KEY'] = 'secret-key-goes-here'
 class Base(DeclarativeBase):
     pass
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///posts.db'
+app.config['DOWNLOAD_FOLDER'] = 'static/files'
 db = SQLAlchemy(model_class=Base)
 db.init_app(app)
 
@@ -61,7 +62,9 @@ def logout():
 
 @app.route('/download')
 def download():
-    pass
+    return send_from_directory(
+        app.config['DOWNLOAD_FOLDER'], "cheat_sheet.pdf", as_attachment=True
+    )
 
 
 if __name__ == "__main__":
