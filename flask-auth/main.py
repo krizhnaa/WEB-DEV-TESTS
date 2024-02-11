@@ -1,19 +1,12 @@
-from flask import Flask, render_template, request, url_for, redirect, send_from_directory
+from flask import Flask, flash, render_template, request, url_for, redirect, send_from_directory
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret-key-goes-here'
-
-
-class Base(DeclarativeBase):
-    pass
-
-
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///posts.db'
-db = SQLAlchemy(model_class=Base)
-db.init_app(app)
+db = SQLAlchemy(app)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -58,14 +51,20 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    error = None
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
         user = User.query.filter_by(email=email).first()
-        if check_password_hash(user.password, password):
-            login_user(user)
-            return redirect(url_for('secrets'))
-    return render_template('login.html')
+        if user:
+            if check_password_hash(user.password, password):
+                login_user(user)
+                return redirect(url_for('secrets'))
+            else:
+                flash('Invalid password')
+        else:
+            flash('The email does not exist')
+    return render_template('login.html', error=error)
 
 
 @app.route('/secrets')
