@@ -9,21 +9,29 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret-key-goes-here'
 
 
+# CREATE DATABASE
 class Base(DeclarativeBase):
     pass
 
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///posts.db'
-app.config['DOWNLOAD_FOLDER'] = 'static/files'
 db = SQLAlchemy(model_class=Base)
 db.init_app(app)
 
+login_manager = LoginManager()
+login_manager.init_app(app)
 
-class User(db.Model):
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    email: Mapped[str] = mapped_column(String(100), unique=True)
-    password: Mapped[str] = mapped_column(String(100))
-    name: Mapped[str] = mapped_column(String(1000))
+
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(100), unique=True)
+    password = db.Column(db.String(100))
+    name = db.Column(db.String(1000))
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return db.get_or_404(User, user_id)
 
 
 @app.route('/')
@@ -34,38 +42,55 @@ def home():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        hashed_pass = generate_password_hash(request.form.get('password'), method='pbkdf2:sha256', salt_length=8)
-        data = User(email=request.form.get('email'),
-                    password=hashed_pass,
-                    name=request.form.get('name')
-                    )
-        db.session.add(data)
+        hashed_pass = generate_password_hash(
+            request.form.get('password'),
+            method='pbkdf2:sha256',
+            salt_length=8
+        )
+        new_user = User(
+            email=request.form.get('email'),
+            password=hashed_pass,
+            name=request.form.get('name')
+        )
+        db.session.add(new_user)
         db.session.commit()
-        return render_template("secrets.html", name=request.form.get('name'))
+        login_user(new_user)
+        return redirect(url_for("secrets"))
     return render_template("register.html")
 
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    return render_template("login.html")
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        user = User.query.filter_by(email=email).first()
+        if check_password_hash(user.password, password):
+            login_user(user)
+            return redirect(url_for('secrets'))
+    return render_template('login.html')
 
 
 @app.route('/secrets')
+@login_required
 def secrets():
-    return render_template("secrets.html")
+    print(current_user.name)
+    return render_template("secrets.html", name=current_user.name)
 
 
 @app.route('/logout')
+@login_required
 def logout():
-    pass
+    logout_user()
+    return redirect(url_for('login'))
 
 
 @app.route('/download')
+@login_required
 def download():
-    return send_from_directory(
-        app.config['DOWNLOAD_FOLDER'], "cheat_sheet.pdf", as_attachment=True
-    )
+    return send_from_directory('static', path="files/cheat_sheet.pdf")
 
 
 if __name__ == "__main__":
     app.run(debug=True)
+
